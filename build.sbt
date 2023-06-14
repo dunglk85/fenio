@@ -1,0 +1,21 @@
+lazy val root = (project in file(".")).
+  settings(
+    name := "scala-sbt",
+    version := "1.0",
+    mainClass in Compile := Some("com.linhnm.Main"),
+    mainClass in assembly := Some("com.linhnm.Main")
+  )
+
+val sparkVersion = "3.2.2"
+
+libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion % "provided"
+libraryDependencies += "org.apache.spark" %% "spark-sql" % sparkVersion
+libraryDependencies += "org.apache.spark" %% "spark-mllib" % sparkVersion
+
+assemblyJarName in assembly := "fenio.jar"
+
+// META-INF discarding
+assemblyMergeStrategy in assembly := {
+  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case x => MergeStrategy.first
+}
