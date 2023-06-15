@@ -1,8 +1,10 @@
 package streaming
 
 import dto.KafkaConf
+import filter.CutomFilter
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions.{col, from_json}
+import org.apache.spark.sql.streaming.Trigger
 import org.apache.spark.sql.types.{IntegerType, StructType}
 
 /**
@@ -15,6 +17,7 @@ object Streaming {
       .format("kafka")
       .option("kafka.bootstrap.servers", "localhost:9092")
       .option("subscribe", KafkaConf.topic)
+      .option("startingOffsets", "earliest")
       .option("kafka.group.id", KafkaConf.groupId)
       .load();
 
@@ -31,7 +34,10 @@ object Streaming {
     val customerLog = customerLogStringDf.select(from_json(col("value"), schema).as("data"))
       .select("data.*")
 
-    customerLog.writeStream
+    val testFilterCustomerLog = customerLog.filter(customerLog("customer_id") % 2 === 0)
+
+    testFilterCustomerLog.writeStream
+      .trigger(Trigger.ProcessingTime("5 seconds"))
       .format("console")
       .outputMode("append")
       .start()
