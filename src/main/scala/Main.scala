@@ -1,6 +1,7 @@
 package com.linhnm
 
 import org.apache.spark.sql.SparkSession
+import streaming.Streaming
 
 /**
  * Created by linhnm on June 2023
@@ -23,9 +24,9 @@ object Main {
     //  val df = spark.read.csv("data/201508_trip_data.csv")
     //  df.show
 
-    val bankDf = spark.read.options(Map("inferSchema" -> "true", "delimiter" -> ";", "header" -> "true")).csv("data/bank/bank.csv")
-    bankDf.show()
-
+//    val bankDf = spark.read.options(Map("inferSchema" -> "true", "delimiter" -> ";", "header" -> "true")).csv("data/bank/bank.csv")
+//    bankDf.show()
+    Streaming.readStreamKafka(spark);
   }
 
 }
