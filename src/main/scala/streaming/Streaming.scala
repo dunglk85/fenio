@@ -1,7 +1,6 @@
 package streaming
 
 import dto.KafkaConf
-import filter.CutomFilter
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions.{col, from_json}
 import org.apache.spark.sql.streaming.Trigger
