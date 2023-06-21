@@ -13,7 +13,7 @@ object Dump {
   def main(args: Array[String]): Unit = {
 
     val hdfsMaster = "hdfs://94.10.10.11:9000"
-    val userDataPath = ""
+    val userDataPath = "/fenio/user-data.csv"
 
     val NUM_CUS = 10
     val rand = new Random()
@@ -42,10 +42,18 @@ object Dump {
 
     df.show()
 
-    df.write.mode(SaveMode.Overwrite).parquet(hdfsMaster + userDataPath)
+    df.write.mode(SaveMode.Overwrite).option("header", "true").csv(hdfsMaster + userDataPath)
 
-    val dfParquet = spark.read.parquet(hdfsMaster + userDataPath)
+    val dfCSV = spark.read
+      .option("inferSchema", "true")
+      .option("delimiter", ",")
+      .option("header", "true")
+      .csv(hdfsMaster + userDataPath)
 
-    dfParquet.show()
+    dfCSV.show()
+
+//    val dfParquet = spark.read.parquet(hdfsMaster + userDataPath)
+
+//    dfParquet.show()
   }
 }

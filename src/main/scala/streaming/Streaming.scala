@@ -14,7 +14,7 @@ object Streaming {
   def readStreamKafka(spark: SparkSession): Unit = {
     val df = spark.readStream
       .format("kafka")
-      .option("kafka.bootstrap.servers", "localhost:9092")
+      .option("kafka.bootstrap.servers", KafkaConf.bootstrapServer)
       .option("subscribe", KafkaConf.topic)
       .option("startingOffsets", "earliest")
       .option("kafka.group.id", KafkaConf.groupId)
