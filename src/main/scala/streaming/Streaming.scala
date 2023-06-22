@@ -2,7 +2,7 @@ package streaming
 
 import dto.KafkaConf
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.functions.{col, from_json}
+import org.apache.spark.sql.functions.{col, from_json, struct, to_json}
 import org.apache.spark.sql.streaming.Trigger
 import org.apache.spark.sql.types.{IntegerType, StructType}
 
@@ -11,7 +11,7 @@ import org.apache.spark.sql.types.{IntegerType, StructType}
  */
 
 object Streaming {
-  def readStreamKafka(spark: SparkSession): Unit = {
+  def process(spark: SparkSession): Unit = {
 
     val hdfsMaster = "hdfs://94.10.10.11:9000"
     val userDataPath = "/fenio/user-data.csv"
@@ -19,7 +19,7 @@ object Streaming {
     val df = spark.readStream
       .format("kafka")
       .option("kafka.bootstrap.servers", KafkaConf.bootstrapServer)
-      .option("subscribe", KafkaConf.topic)
+      .option("subscribe", KafkaConf.logTopic)
       .option("startingOffsets", "earliest")
       .option("kafka.group.id", KafkaConf.groupId)
       .load()
@@ -32,29 +32,42 @@ object Streaming {
 
     //    df.printSchema()
 
-    val customerLogStringDf = df.selectExpr("CAST(value AS STRING)");
+    val customerLogStringDf = df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)");
 
     val schema = new StructType()
       .add("customer_id", IntegerType)
       .add("source", IntegerType)
       .add("target", IntegerType);
 
-    val customerLog = customerLogStringDf.select(from_json(col("value"), schema).as("data"))
-      .select("data.*")
+    val customerDetail = customerLogStringDf
+      .select(col("key").as("key"), from_json(col("value"), schema).as("data"))
+      .select("key", "data.*").alias("customerLog")
+      .join(userData, col("customerLog.customer_id") === userData("id"), "inner")
+      .select(col("key"),
+        to_json(struct("id", "gender", "birth_year", "customerLog.source", "customerLog.target")).alias("value"))
+      .filter(col("gender") === 1)
 
-    val customerDetail = customerLog
-      .join(userData,
-        customerLog("customer_id") === userData("id"), "inner")
 
-    val maleCustomer = customerDetail.filter(customerDetail("gender") === 1)
-
-//    val testFilterCustomerLog = customerLog.filter(customerLog("customer_id") % 2 === 0)
-
-    maleCustomer.writeStream
+    /*
+    customerDetail
+      .writeStream
       .trigger(Trigger.ProcessingTime("5 seconds"))
       .format("console")
       .outputMode("append")
       .start()
       .awaitTermination()
+
+     */
+
+    customerDetail
+          .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
+          .writeStream
+          .trigger(Trigger.ProcessingTime("5 seconds"))
+          .format("kafka")
+          .option("kafka.bootstrap.servers", KafkaConf.bootstrapServer)
+          .option("topic", KafkaConf.messageTopic)
+          .option("checkpointLocation", "/tmp/checkpoint")
+          .start()
+          .awaitTermination()
   }
 }

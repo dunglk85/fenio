@@ -21,7 +21,7 @@ object Main {
     println("Deploy Mode :" + spark.sparkContext.deployMode);
     println("Master :" + spark.sparkContext.master);
 
-    Streaming.readStreamKafka(spark);
+    Streaming.process(spark);
   }
 
 }

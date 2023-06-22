@@ -7,7 +7,8 @@ import scala.math.Ordering
  */
 
 object KafkaConf {
-  val bootstrapServer = "94.10.10.131:9092";
-  val topic = "fenio";
-  val groupId = "spark-streaming-1";
+  val bootstrapServer = "94.10.10.131:9092"
+  val logTopic = "fenio"
+  val messageTopic = "fenio-target"
+  val groupId = "spark-streaming-1"
 }
