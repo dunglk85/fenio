@@ -12,16 +12,25 @@ import org.apache.spark.sql.types.{IntegerType, StructType}
 
 object Streaming {
   def readStreamKafka(spark: SparkSession): Unit = {
+
+    val hdfsMaster = "hdfs://94.10.10.11:9000"
+    val userDataPath = "/fenio/user-data.csv"
+
     val df = spark.readStream
       .format("kafka")
       .option("kafka.bootstrap.servers", KafkaConf.bootstrapServer)
       .option("subscribe", KafkaConf.topic)
       .option("startingOffsets", "earliest")
       .option("kafka.group.id", KafkaConf.groupId)
-      .load();
+      .load()
 
+    val userData = spark.read
+      .option("inferSchema", "true")
+      .option("delimiter", ",")
+      .option("header", "true")
+      .csv(hdfsMaster + userDataPath)
 
-    df.printSchema();
+    //    df.printSchema()
 
     val customerLogStringDf = df.selectExpr("CAST(value AS STRING)");
 
@@ -33,9 +42,15 @@ object Streaming {
     val customerLog = customerLogStringDf.select(from_json(col("value"), schema).as("data"))
       .select("data.*")
 
-    val testFilterCustomerLog = customerLog.filter(customerLog("customer_id") % 2 === 0)
+    val customerDetail = customerLog
+      .join(userData,
+        customerLog("customer_id") === userData("id"), "inner")
 
-    testFilterCustomerLog.writeStream
+    val maleCustomer = customerDetail.filter(customerDetail("gender") === 1)
+
+//    val testFilterCustomerLog = customerLog.filter(customerLog("customer_id") % 2 === 0)
+
+    maleCustomer.writeStream
       .trigger(Trigger.ProcessingTime("5 seconds"))
       .format("console")
       .outputMode("append")

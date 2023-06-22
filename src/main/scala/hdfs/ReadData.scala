@@ -7,6 +7,9 @@ import org.apache.spark.sql.SparkSession
  */
 
 object ReadData {
+  val hdfsMaster = "hdfs://94.10.10.11:9000"
+  val userDataPath = "/fenio/user-data.csv"
+
   def main(args: Array[String]): Unit = {
     val hdfsMaster = "hdfs://94.10.10.11:9000"
 //    val userDataPath = "/dir/hadoop/hello_world.txt"

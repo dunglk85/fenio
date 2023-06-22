@@ -21,11 +21,6 @@ object Main {
     println("Deploy Mode :" + spark.sparkContext.deployMode);
     println("Master :" + spark.sparkContext.master);
 
-    //  val df = spark.read.csv("data/201508_trip_data.csv")
-    //  df.show
-
-//    val bankDf = spark.read.options(Map("inferSchema" -> "true", "delimiter" -> ";", "header" -> "true")).csv("data/bank/bank.csv")
-//    bankDf.show()
     Streaming.readStreamKafka(spark);
   }
 
