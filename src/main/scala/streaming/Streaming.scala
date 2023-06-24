@@ -46,6 +46,8 @@ object Streaming {
       .select(col("key"),
         to_json(struct("id", "gender", "birth_year", "customerLog.source", "customerLog.target")).alias("value"))
       .filter(col("gender") === 1)
+      .filter(col("customerLog.target") === 1)
+      .filter(col("customerLog.source") !== col("customerLog.target"))
 
 
     /*
