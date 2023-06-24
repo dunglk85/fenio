@@ -9,11 +9,11 @@ import streaming.Streaming
 
 object Main {
   def main(args: Array[String]): Unit = {
-    println("hello dai ca Linh")
+    println("Start spark app")
 
     val spark = SparkSession.builder()
       .master("local[1]")
-      .appName("SparkByExample")
+      .appName("fenio")
       .getOrCreate();
 
     println("First SparkContext:")
